@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPMA Quest - Dein Projektabenteuer</title>
+<style>
+/* ============ RESET & BASE ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --phase1: #6C5CE7; --phase1-light: #a29bfe;
+  --phase2: #0984E3; --phase2-light: #74b9ff;
+  --phase3: #00B894; --phase3-light: #55efc4;
+  --phase4: #E17055; --phase4-light: #fab1a0;
+  --bg: #0f0f1a; --bg-card: #1a1a2e; --bg-card-hover: #22223a;
+  --text: #e0e0e0; --text-muted: #888;
+  --accent: #fdcb6e; --accent-glow: rgba(253,203,110,0.3);
+  --success: #00b894; --danger: #d63031;
+  --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+/* ============ HEADER ============ */
+.app-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-bottom: 2px solid rgba(253,203,110,0.2);
+  padding: 16px 24px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-content {
+  max-width: 1400px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.app-title {
+  font-size: 1.5rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #e17055);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.app-title span { font-size: 0.8rem; opacity: 0.7; display: block;
+  -webkit-text-fill-color: var(--text-muted); }
+
+/* XP Bar */
+.xp-container { display: flex; align-items: center; gap: 12px; }
+.xp-level {
+  background: var(--accent); color: #000; font-weight: 800;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; box-shadow: 0 0 15px var(--accent-glow);
+  position: relative;
+}
+.xp-bar-wrap {
+  width: 200px; height: 12px; background: rgba(255,255,255,0.1);
+  border-radius: 6px; overflow: hidden; position: relative;
+}
+.xp-bar-fill {
+  height: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent), #e17055);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.xp-bar-fill::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.xp-text { font-size: 0.8rem; color: var(--text-muted); min-width: 80px; }
+
+/* Streak */
+.streak-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(253,203,110,0.1); padding: 6px 14px;
+  border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(253,203,110,0.2);
+}
+.streak-fire { font-size: 1.2rem; }
+
+/* ============ PHASE NAVIGATION ============ */
+.phase-nav {
+  max-width: 1400px; margin: 24px auto 0; padding: 0 24px;
+  display: flex; gap: 4px; position: relative;
+}
+.phase-nav::before {
+  content: ''; position: absolute; top: 50%; left: 24px; right: 24px;
+  height: 3px; background: rgba(255,255,255,0.05); z-index: 0;
+}
+.phase-tab {
+  flex: 1; padding: 14px 12px; text-align: center; cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 3px solid transparent; transition: all 0.3s;
+  position: relative; z-index: 1; user-select: none;
+}
+.phase-tab:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
+.phase-tab.active { border-bottom-color: var(--accent); background: var(--bg-card-hover); }
+.phase-tab.completed .phase-icon { background: var(--success) !important; }
+.phase-tab .phase-num {
+  font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.phase-tab .phase-icon {
+  width: 36px; height: 36px; border-radius: 50%; margin: 4px auto;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  transition: all 0.3s;
+}
+.phase-tab .phase-label { font-size: 0.85rem; font-weight: 600; margin-top: 4px; }
+.phase-tab .phase-progress-mini {
+  font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;
+}
+.phase-tab[data-phase="init"] .phase-icon { background: var(--phase1); }
+.phase-tab[data-phase="plan"] .phase-icon { background: var(--phase2); }
+.phase-tab[data-phase="exec"] .phase-icon { background: var(--phase3); }
+.phase-tab[data-phase="close"] .phase-icon { background: var(--phase4); }
+
+/* ============ MAIN CONTENT ============ */
+.main-content {
+  max-width: 1400px; margin: 0 auto; padding: 24px;
+}
+.phase-panel { display: none; animation: fadeIn 0.3s ease; }
+.phase-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Phase Header */
+.phase-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+}
+.phase-title-area h2 { font-size: 1.6rem; font-weight: 800; }
+.phase-title-area p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; max-width: 600px; }
+.phase-progress-bar {
+  width: 100%; max-width: 400px; height: 20px;
+  background: rgba(255,255,255,0.08); border-radius: 10px;
+  overflow: hidden; margin-top: 8px; position: relative;
+}
+.phase-progress-fill {
+  height: 100%; border-radius: 10px; transition: width 0.6s ease;
+  position: relative;
+}
+.phase-progress-fill::after {
+  content: attr(data-percent); position: absolute; right: 8px; top: 50%;
+  transform: translateY(-50%); font-size: 0.7rem; font-weight: 700; color: #000;
+}
+.phase-stats {
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--bg-card); padding: 12px 20px; border-radius: var(--radius-sm);
+  text-align: center; min-width: 80px; border: 1px solid rgba(255,255,255,0.05);
+}
+.stat-card .stat-num { font-size: 1.4rem; font-weight: 800; }
+.stat-card .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ============ TASK CATEGORIES (Arbeitspakete) ============ */
+.task-categories {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 500px) {
+  .task-categories { grid-template-columns: 1fr; }
+}
+.task-category {
+  background: var(--bg-card); border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.05); overflow: hidden;
+  transition: all 0.3s;
+}
+.task-category:hover { border-color: rgba(255,255,255,0.1); }
+.category-header {
+  padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; user-select: none; position: relative;
+}
+.category-header::after {
+  content: ''; position: absolute; bottom: 0; left: 20px; right: 20px;
+  height: 1px; background: rgba(255,255,255,0.05);
+}
+.category-icon {
+  width: 38px; height: 38px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+.category-info { flex: 1; }
+.category-info h3 { font-size: 0.95rem; font-weight: 700; }
+.category-info .cat-progress {
+  font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;
+}
+.category-toggle {
+  font-size: 1.2rem; transition: transform 0.3s; color: var(--text-muted);
+}
+.task-category.collapsed .category-toggle { transform: rotate(-90deg); }
+.task-category.collapsed .task-list { display: none; }
+
+/* ============ TASKS ============ */
+.task-list { padding: 8px 12px 12px; }
+.task-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  transition: all 0.2s; cursor: pointer; margin-bottom: 4px;
+}
+.task-item:hover { background: rgba(255,255,255,0.03); }
+.task-item.completed { opacity: 0.5; }
+.task-item.completed .task-text { text-decoration: line-through; }
+
+.task-check {
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; margin-top: 1px; font-size: 0.8rem;
+  background: transparent;
+}
+.task-check:hover { border-color: var(--success); background: rgba(0,184,148,0.1); }
+.task-item.completed .task-check {
+  background: var(--success); border-color: var(--success); color: #fff;
+}
+.task-content { flex: 1; min-width: 0; }
+.task-text { font-size: 0.9rem; font-weight: 500; }
+.task-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+.task-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.task-tag {
+  font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
+  background: rgba(255,255,255,0.06); color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.task-tag.xp { background: rgba(253,203,110,0.15); color: var(--accent); font-weight: 700; }
+.task-tag.priority-high { background: rgba(214,48,49,0.15); color: #ff7675; }
+.task-tag.priority-medium { background: rgba(253,203,110,0.15); color: var(--accent); }
+.task-tag.doc { background: rgba(9,132,227,0.15); color: var(--phase2-light); }
+
+/* Add Task */
+.add-task-area { padding: 8px 12px 12px; }
+.add-task-btn {
+  width: 100%; padding: 10px; border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm); background: transparent; color: var(--text-muted);
+  cursor: pointer; font-size: 0.85rem; transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.add-task-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(253,203,110,0.05); }
+
+.add-task-form {
+  display: none; padding: 12px; background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08);
+}
+.add-task-form.active { display: block; }
+.add-task-form input, .add-task-form textarea, .add-task-form select {
+  width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1); background: var(--bg);
+  color: var(--text); font-size: 0.85rem; margin-bottom: 8px;
+  font-family: inherit;
+}
+.add-task-form textarea { resize: vertical; min-height: 60px; }
+.add-task-form .form-row { display: flex; gap: 8px; }
+.add-task-form .form-row select { flex: 1; }
+.btn-row { display: flex; gap: 8px; margin-top: 4px; }
+.btn {
+  padding: 8px 16px; border-radius: var(--radius-sm); border: none;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); }
+.btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+/* ============ NOTES SECTION ============ */
+.notes-section {
+  margin-top: 24px; background: var(--bg-card); border-radius: var(--radius);
+  padding: 20px; border: 1px solid rgba(255,255,255,0.05);
+}
+.notes-section h3 { font-size: 1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.notes-area {
+  width: 100%; min-height: 100px; padding: 12px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1); background: var(--bg);
+  color: var(--text); font-family: inherit; font-size: 0.85rem;
+  resize: vertical; line-height: 1.6;
+}
+.notes-area:focus { outline: none; border-color: var(--accent); }
+
+/* ============ POMODORO TIMER ============ */
+.pomodoro-widget {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+}
+.pomo-toggle {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #e17055);
+  border: none; cursor: pointer; font-size: 1.4rem;
+  box-shadow: 0 4px 20px rgba(253,203,110,0.3);
+  transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.pomo-toggle:hover { transform: scale(1.1); }
+.pomo-panel {
+  display: none; position: absolute; bottom: 70px; right: 0;
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 20px; width: 260px; box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.pomo-panel.active { display: block; animation: fadeIn 0.2s ease; }
+.pomo-display {
+  text-align: center; font-size: 2.8rem; font-weight: 800;
+  font-variant-numeric: tabular-nums; margin: 12px 0;
+  font-family: 'Courier New', monospace;
+}
+.pomo-label { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; }
+.pomo-controls { display: flex; gap: 8px; justify-content: center; }
+.pomo-btn {
+  padding: 8px 20px; border-radius: var(--radius-sm); border: none;
+  font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
+}
+.pomo-btn.start { background: var(--success); color: #fff; }
+.pomo-btn.pause { background: var(--accent); color: #000; }
+.pomo-btn.reset { background: rgba(255,255,255,0.1); color: var(--text); }
+.pomo-sessions {
+  display: flex; gap: 6px; justify-content: center; margin-top: 12px;
+}
+.pomo-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.pomo-dot.done { background: var(--success); }
+
+/* ============ CELEBRATIONS ============ */
+.celebration-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+}
+.celebration-overlay.active { display: flex; }
+.celebration-card {
+  background: var(--bg-card); border-radius: 20px; padding: 40px;
+  text-align: center; max-width: 400px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 60px var(--accent-glow);
+}
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.celebration-icon { font-size: 4rem; margin-bottom: 16px; }
+.celebration-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+.celebration-text { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 8px; }
+.celebration-xp { font-size: 1.2rem; color: var(--accent); font-weight: 700; margin-bottom: 20px; }
+.celebration-btn {
+  padding: 12px 32px; border-radius: var(--radius-sm); border: none;
+  background: var(--accent); color: #000; font-weight: 700;
+  font-size: 1rem; cursor: pointer; transition: all 0.2s;
+}
+.celebration-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; width: 10px; height: 10px; z-index: 1001;
+  animation: confettiFall 3s ease-in forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ============ XP POPUP ============ */
+.xp-popup {
+  position: fixed; top: 80px; right: 24px; z-index: 500;
+  background: rgba(253,203,110,0.15); border: 1px solid var(--accent);
+  padding: 12px 20px; border-radius: var(--radius-sm);
+  color: var(--accent); font-weight: 700; font-size: 1rem;
+  animation: xpSlide 2s ease forwards; pointer-events: none;
+}
+@keyframes xpSlide {
+  0% { transform: translateX(100px); opacity: 0; }
+  15% { transform: translateX(0); opacity: 1; }
+  85% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100px); opacity: 0; }
+}
+
+/* ============ QUICK ADD MODAL ============ */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 900; display: none;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 28px; width: 90%; max-width: 480px;
+  border: 1px solid rgba(255,255,255,0.1); box-shadow: var(--shadow);
+  animation: fadeIn 0.2s ease;
+}
+.modal h3 { margin-bottom: 16px; font-size: 1.1rem; }
+.modal input, .modal textarea, .modal select {
+  width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1); background: var(--bg);
+  color: var(--text); font-size: 0.9rem; margin-bottom: 10px;
+  font-family: inherit;
+}
+.modal textarea { resize: vertical; min-height: 60px; }
+
+/* ============ TOOLTIP ============ */
+.tooltip {
+  position: relative;
+}
+.tooltip::after {
+  content: attr(data-tip); position: absolute; bottom: 100%;
+  left: 50%; transform: translateX(-50%); padding: 4px 10px;
+  background: #333; color: #fff; font-size: 0.75rem; border-radius: 4px;
+  white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.tooltip:hover::after { opacity: 1; }
+
+/* ============ DASHBOARD OVERVIEW ============ */
+.dashboard-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.dash-card {
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: 20px; text-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s;
+}
+.dash-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.1); }
+.dash-card .dash-icon { font-size: 2rem; margin-bottom: 8px; }
+.dash-card .dash-value { font-size: 1.8rem; font-weight: 800; }
+.dash-card .dash-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ============ ACHIEVEMENT BADGES ============ */
+.achievements-bar {
+  display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0;
+}
+.achievement {
+  width: 44px; height: 44px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 1.2rem;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+  opacity: 0.3; transition: all 0.3s; cursor: default; position: relative;
+}
+.achievement.unlocked {
+  opacity: 1; border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+  animation: badgePulse 2s ease infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
+  50% { box-shadow: 0 0 20px var(--accent-glow); }
+}
+
+/* ============ KEYBOARD HINT ============ */
+.kbd-hint {
+  position: fixed; bottom: 24px; left: 24px;
+  font-size: 0.75rem; color: var(--text-muted);
+  display: flex; gap: 12px;
+}
+kbd {
+  background: rgba(255,255,255,0.08); padding: 2px 8px;
+  border-radius: 4px; font-family: inherit; border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+  .phase-nav { flex-wrap: wrap; gap: 8px; }
+  .phase-tab { flex: 1 1 45%; }
+  .phase-tab .phase-label { font-size: 0.75rem; }
+  .header-content { flex-direction: column; align-items: flex-start; }
+  .task-categories { grid-template-columns: 1fr; }
+  .kbd-hint { display: none; }
+  .pomo-widget { bottom: 12px; right: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <div class="header-content">
+    <div class="app-title">
+      IPMA Quest
+      <span>Dein Projektabenteuer</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div class="achievements-bar" id="achievementsBar"></div>
+      <div class="streak-badge">
+        <span class="streak-fire">🔥</span>
+        <span id="streakCount">0</span> Tage Streak
+      </div>
+      <div class="xp-container">
+        <div class="xp-level" id="levelBadge">1</div>
+        <div>
+          <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
+          <div class="xp-text" id="xpText">0 / 100 XP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== PHASE NAVIGATION ===== -->
+<nav class="phase-nav" id="phaseNav">
+  <div class="phase-tab active" data-phase="init" onclick="switchPhase('init')">
+    <div class="phase-num">Phase 1</div>
+    <div class="phase-icon">🚀</div>
+    <div class="phase-label">Initialisierung</div>
+    <div class="phase-progress-mini" id="initMini">0/0</div>
+  </div>
+  <div class="phase-tab" data-phase="plan" onclick="switchPhase('plan')">
+    <div class="phase-num">Phase 2</div>
+    <div class="phase-icon">📋</div>
+    <div class="phase-label">Planung</div>
+    <div class="phase-progress-mini" id="planMini">0/0</div>
+  </div>
+  <div class="phase-tab" data-phase="exec" onclick="switchPhase('exec')">
+    <div class="phase-num">Phase 3</div>
+    <div class="phase-icon">⚡</div>
+    <div class="phase-label">Durchführung</div>
+    <div class="phase-progress-mini" id="execMini">0/0</div>
+  </div>
+  <div class="phase-tab" data-phase="close" onclick="switchPhase('close')">
+    <div class="phase-num">Phase 4</div>
+    <div class="phase-icon">🏆</div>
+    <div class="phase-label">Abschluss</div>
+    <div class="phase-progress-mini" id="closeMini">0/0</div>
+  </div>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content" id="mainContent"></main>
+
+<!-- ===== POMODORO ===== -->
+<div class="pomodoro-widget">
+  <button class="pomo-toggle" onclick="togglePomodoro()" title="Pomodoro Timer">⏱️</button>
+  <div class="pomo-panel" id="pomoPanel">
+    <div class="pomo-label" id="pomoLabel">Fokuszeit</div>
+    <div class="pomo-display" id="pomoDisplay">25:00</div>
+    <div class="pomo-controls">
+      <button class="pomo-btn start" id="pomoStartBtn" onclick="pomoStart()">Start</button>
+      <button class="pomo-btn reset" onclick="pomoReset()">Reset</button>
+    </div>
+    <div class="pomo-sessions" id="pomoSessions">
+      <div class="pomo-dot"></div><div class="pomo-dot"></div>
+      <div class="pomo-dot"></div><div class="pomo-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CELEBRATION ===== -->
+<div class="celebration-overlay" id="celebrationOverlay">
+  <div class="celebration-card">
+    <div class="celebration-icon" id="celebIcon">🎉</div>
+    <div class="celebration-title" id="celebTitle">Großartig!</div>
+    <div class="celebration-text" id="celebText"></div>
+    <div class="celebration-xp" id="celebXp"></div>
+    <button class="celebration-btn" onclick="closeCelebration()">Weiter so! 💪</button>
+  </div>
+</div>
+
+<!-- ===== KEYBOARD HINTS ===== -->
+<div class="kbd-hint">
+  <span><kbd>1-4</kbd> Phase wechseln</span>
+  <span><kbd>N</kbd> Neue Aufgabe</span>
+  <span><kbd>P</kbd> Pomodoro</span>
+</div>
+
+<script>
+// ============================================================
+//  DATA MODEL
+// ============================================================
+const PHASES = {
+  init: {
+    title: '🚀 Projekt-Initialisierung',
+    subtitle: 'Definiere dein Projekt und schaffe die Grundlage für den Erfolg.',
+    color: '#6C5CE7',
+    categories: [
+      {
+        id: 'init_charter', icon: '📜', title: 'Projektauftrag (Charter)',
+        color: 'var(--phase1)',
+        tasks: [
+          { id: 't1', text: 'Projektname & Kurzbeschreibung festlegen', desc: 'Gib deinem Projekt einen klaren, einprägsamen Namen und beschreibe es in 2-3 Sätzen.', xp: 10, priority: 'high' },
+          { id: 't2', text: 'Projektziele definieren (SMART)', desc: 'Formuliere messbare, erreichbare Ziele mit klarem Zeitrahmen.', xp: 20, priority: 'high' },
+          { id: 't3', text: 'Projektumfang (Scope) abgrenzen', desc: 'Was gehört zum Projekt? Was nicht? Definiere klare Grenzen.', xp: 15, priority: 'high' },
+          { id: 't4', text: 'Business Case erstellen', desc: 'Warum lohnt sich dieses Projekt? Kosten-Nutzen-Analyse skizzieren.', xp: 15, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'init_stake', icon: '👥', title: 'Stakeholder-Analyse',
+        color: 'var(--phase1-light)',
+        tasks: [
+          { id: 't5', text: 'Stakeholder identifizieren', desc: 'Wer hat Einfluss auf oder Interesse an deinem Projekt?', xp: 10, priority: 'high' },
+          { id: 't6', text: 'Stakeholder-Matrix erstellen', desc: 'Einfluss vs. Interesse Matrix aufbauen. Wer muss eng eingebunden werden?', xp: 15, priority: 'medium' },
+          { id: 't7', text: 'Kommunikationsstrategie je Stakeholder', desc: 'Wie und wie oft kommunizierst du mit welchem Stakeholder?', xp: 15, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'init_org', icon: '🏗️', title: 'Projektorganisation',
+        color: 'var(--phase1)',
+        tasks: [
+          { id: 't8', text: 'Projektleiter & Auftraggeber benennen', desc: 'Wer führt das Projekt? Wer ist der Sponsor?', xp: 10, priority: 'high' },
+          { id: 't9', text: 'Kernteam zusammenstellen', desc: 'Welche Rollen und Kompetenzen brauchst du im Team?', xp: 10, priority: 'high' },
+          { id: 't10', text: 'Rollen & Verantwortlichkeiten klären (RACI)', desc: 'Responsible, Accountable, Consulted, Informed - für jede Aufgabe.', xp: 15, priority: 'medium' },
+          { id: 't11', text: 'Kick-off Meeting planen', desc: 'Datum, Agenda, Teilnehmer für den offiziellen Projektstart.', xp: 10, priority: 'medium' },
+        ]
+      }
+    ]
+  },
+  plan: {
+    title: '📋 Projektplanung',
+    subtitle: 'Plane gründlich - ein gut geplantes Projekt ist halb gewonnen.',
+    color: '#0984E3',
+    categories: [
+      {
+        id: 'plan_scope', icon: '🎯', title: 'Inhalts- & Umfangsplanung',
+        color: 'var(--phase2)',
+        tasks: [
+          { id: 'p1', text: 'Projektstrukturplan (PSP/WBS) erstellen', desc: 'Zerlege dein Projekt in übersichtliche Arbeitspakete.', xp: 25, priority: 'high' },
+          { id: 'p2', text: 'Arbeitspakete detailliert beschreiben', desc: 'Für jedes Arbeitspaket: Inhalt, Ergebnis, Aufwand.', xp: 20, priority: 'high' },
+          { id: 'p3', text: 'Liefergegenstände (Deliverables) definieren', desc: 'Was wird wann abgeliefert? Messbare Ergebnisse festlegen.', xp: 15, priority: 'high' },
+        ]
+      },
+      {
+        id: 'plan_time', icon: '📅', title: 'Terminplanung',
+        color: 'var(--phase2-light)',
+        tasks: [
+          { id: 'p4', text: 'Meilensteine definieren', desc: 'Wichtige Zwischenziele und Entscheidungspunkte festlegen.', xp: 15, priority: 'high' },
+          { id: 'p5', text: 'Vorgänge & Abhängigkeiten identifizieren', desc: 'Welche Aufgaben hängen voneinander ab?', xp: 20, priority: 'high' },
+          { id: 'p6', text: 'Zeitplan / Gantt-Diagramm erstellen', desc: 'Visueller Zeitplan mit Start- und Endterminen.', xp: 20, priority: 'high' },
+          { id: 'p7', text: 'Kritischen Pfad identifizieren', desc: 'Welche Vorgangskette bestimmt die Mindestdauer?', xp: 15, priority: 'medium' },
+          { id: 'p8', text: 'Pufferzeiten einplanen', desc: 'Realistische Puffer für unvorhergesehene Verzögerungen.', xp: 10, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'plan_cost', icon: '💰', title: 'Kosten- & Ressourcenplanung',
+        color: 'var(--phase2)',
+        tasks: [
+          { id: 'p9', text: 'Ressourcenbedarf pro Arbeitspaket schätzen', desc: 'Personal, Material, Budget pro Paket kalkulieren.', xp: 20, priority: 'high' },
+          { id: 'p10', text: 'Gesamtbudget aufstellen', desc: 'Alle Kosten zusammenfassen und Budget genehmigen lassen.', xp: 15, priority: 'high' },
+          { id: 'p11', text: 'Ressourcenkalender erstellen', desc: 'Wer ist wann verfügbar? Urlaubszeiten beachten!', xp: 10, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'plan_risk', icon: '⚠️', title: 'Risikomanagement',
+        color: 'var(--phase2-light)',
+        tasks: [
+          { id: 'p12', text: 'Risiken identifizieren', desc: 'Brainstorming: Was könnte schiefgehen?', xp: 15, priority: 'high' },
+          { id: 'p13', text: 'Risiken bewerten (Wahrscheinlichkeit × Auswirkung)', desc: 'Risikomatrix erstellen und priorisieren.', xp: 20, priority: 'high' },
+          { id: 'p14', text: 'Gegenmaßnahmen planen', desc: 'Für Top-Risiken: Vermeiden, Vermindern, Verlagern oder Akzeptieren.', xp: 15, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'plan_qual', icon: '✅', title: 'Qualitäts- & Kommunikationsplanung',
+        color: 'var(--phase2)',
+        tasks: [
+          { id: 'p15', text: 'Qualitätskriterien festlegen', desc: 'Wie wird Qualität gemessen und sichergestellt?', xp: 10, priority: 'medium' },
+          { id: 'p16', text: 'Kommunikationsplan erstellen', desc: 'Wer berichtet wem, wann, in welcher Form?', xp: 15, priority: 'medium' },
+          { id: 'p17', text: 'Dokumentationsstandards definieren', desc: 'Vorlagen, Ablage, Versionierung - alles klar regeln.', xp: 10, priority: 'medium' },
+        ]
+      }
+    ]
+  },
+  exec: {
+    title: '⚡ Projektdurchführung',
+    subtitle: 'Jetzt wird\'s ernst! Hier passiert die eigentliche Arbeit.',
+    color: '#00B894',
+    categories: [
+      {
+        id: 'exec_work', icon: '🔨', title: 'Arbeitspakete umsetzen',
+        color: 'var(--phase3)',
+        tasks: [
+          { id: 'e1', text: 'Erstes Arbeitspaket starten', desc: 'Los geht\'s! Starte mit dem wichtigsten Arbeitspaket.', xp: 20, priority: 'high' },
+          { id: 'e2', text: 'Fortschritt dokumentieren', desc: 'Halte regelmäßig fest, was erledigt wurde.', xp: 10, priority: 'medium' },
+          { id: 'e3', text: 'Team-Koordination sicherstellen', desc: 'Regelmäßige Stand-ups oder Status-Meetings.', xp: 10, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'exec_control', icon: '📊', title: 'Projektsteuerung',
+        color: 'var(--phase3-light)',
+        tasks: [
+          { id: 'e4', text: 'Soll-Ist-Vergleich durchführen', desc: 'Termine, Kosten, Leistung - wo stehst du wirklich?', xp: 15, priority: 'high' },
+          { id: 'e5', text: 'Meilenstein-Review durchführen', desc: 'Wurden die Meilensteine erreicht? Qualität ok?', xp: 15, priority: 'high' },
+          { id: 'e6', text: 'Statusbericht erstellen', desc: 'Ampelstatus, Fortschritt, Probleme, nächste Schritte.', xp: 10, priority: 'medium' },
+          { id: 'e7', text: 'Budget-Tracking aktualisieren', desc: 'Wie viel Budget ist verbraucht? Prognose für Rest?', xp: 10, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'exec_change', icon: '🔄', title: 'Änderungsmanagement',
+        color: 'var(--phase3)',
+        tasks: [
+          { id: 'e8', text: 'Change Requests erfassen', desc: 'Alle Änderungswünsche formal dokumentieren.', xp: 10, priority: 'medium' },
+          { id: 'e9', text: 'Änderungsauswirkungen bewerten', desc: 'Was bedeutet die Änderung für Zeit, Kosten, Qualität?', xp: 15, priority: 'medium' },
+          { id: 'e10', text: 'Risiko-Register aktualisieren', desc: 'Neue Risiken? Alte Risiken eingetreten?', xp: 10, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'exec_comm', icon: '📣', title: 'Stakeholder-Management',
+        color: 'var(--phase3-light)',
+        tasks: [
+          { id: 'e11', text: 'Stakeholder-Updates liefern', desc: 'Regelmäßige Updates an alle relevanten Stakeholder.', xp: 10, priority: 'medium' },
+          { id: 'e12', text: 'Eskalationen managen', desc: 'Probleme rechtzeitig nach oben kommunizieren.', xp: 15, priority: 'high' },
+          { id: 'e13', text: 'Team-Motivation aufrecht erhalten', desc: 'Erfolge feiern, Hindernisse beseitigen.', xp: 10, priority: 'medium' },
+        ]
+      }
+    ]
+  },
+  close: {
+    title: '🏆 Projektabschluss',
+    subtitle: 'Fast geschafft! Sichere die Ergebnisse und feiere den Erfolg!',
+    color: '#E17055',
+    categories: [
+      {
+        id: 'close_deliver', icon: '📦', title: 'Ergebnisse übergeben',
+        color: 'var(--phase4)',
+        tasks: [
+          { id: 'c1', text: 'Abnahme der Liefergegenstände', desc: 'Formale Abnahme durch Auftraggeber einholen.', xp: 25, priority: 'high' },
+          { id: 'c2', text: 'Projektdokumentation finalisieren', desc: 'Alle Dokumente aktualisieren und zusammenstellen.', xp: 15, priority: 'high' },
+          { id: 'c3', text: 'Wissenstransfer durchführen', desc: 'Know-how an Betrieb/Linie übergeben.', xp: 15, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'close_review', icon: '🔍', title: 'Lessons Learned',
+        color: 'var(--phase4-light)',
+        tasks: [
+          { id: 'c4', text: 'Lessons Learned Workshop durchführen', desc: 'Was lief gut? Was können wir besser machen?', xp: 20, priority: 'high' },
+          { id: 'c5', text: 'Soll-Ist-Vergleich final erstellen', desc: 'Endgültiger Vergleich: Plan vs. Realität.', xp: 15, priority: 'medium' },
+          { id: 'c6', text: 'Erfahrungsbericht schreiben', desc: 'Dokumentiere die wichtigsten Erkenntnisse.', xp: 15, priority: 'medium' },
+        ]
+      },
+      {
+        id: 'close_admin', icon: '📋', title: 'Administrative Abschluss',
+        color: 'var(--phase4)',
+        tasks: [
+          { id: 'c7', text: 'Verträge & Bestellungen abschließen', desc: 'Alle offenen Verträge formal beenden.', xp: 10, priority: 'medium' },
+          { id: 'c8', text: 'Ressourcen freigeben', desc: 'Teammitglieder, Räume, Equipment zurückgeben.', xp: 10, priority: 'medium' },
+          { id: 'c9', text: 'Abschlussbericht erstellen', desc: 'Zusammenfassender Bericht für Auftraggeber und Management.', xp: 20, priority: 'high' },
+          { id: 'c10', text: 'Projekterfolg feiern! 🎉', desc: 'Vergiss nicht, den Erfolg mit dem Team zu feiern!', xp: 30, priority: 'high' },
+        ]
+      }
+    ]
+  }
+};
+
+const ACHIEVEMENTS = [
+  { id: 'first_task', icon: '⭐', title: 'Erster Schritt', desc: 'Erste Aufgabe erledigt', condition: s => s.totalCompleted >= 1 },
+  { id: 'five_tasks', icon: '🌟', title: 'Durchstarter', desc: '5 Aufgaben erledigt', condition: s => s.totalCompleted >= 5 },
+  { id: 'ten_tasks', icon: '💫', title: 'Auf Kurs', desc: '10 Aufgaben erledigt', condition: s => s.totalCompleted >= 10 },
+  { id: 'twenty_tasks', icon: '🔥', title: 'Unaufhaltbar', desc: '20 Aufgaben erledigt', condition: s => s.totalCompleted >= 20 },
+  { id: 'phase1_done', icon: '🚀', title: 'Initiiert', desc: 'Phase 1 abgeschlossen', condition: s => s.phaseDone.init },
+  { id: 'phase2_done', icon: '📋', title: 'Geplant', desc: 'Phase 2 abgeschlossen', condition: s => s.phaseDone.plan },
+  { id: 'phase3_done', icon: '⚡', title: 'Umgesetzt', desc: 'Phase 3 abgeschlossen', condition: s => s.phaseDone.exec },
+  { id: 'phase4_done', icon: '🏆', title: 'Abgeschlossen', desc: 'Phase 4 abgeschlossen', condition: s => s.phaseDone.close },
+  { id: 'all_done', icon: '👑', title: 'Projektmeister', desc: 'Alle Phasen abgeschlossen', condition: s => Object.values(s.phaseDone).every(Boolean) },
+  { id: 'streak3', icon: '🔥', title: 'Streak!', desc: '3 Tage Streak', condition: s => s.streak >= 3 },
+  { id: 'pomo4', icon: '🍅', title: 'Fokussiert', desc: '4 Pomodoros geschafft', condition: s => s.pomodorosDone >= 4 },
+  { id: 'custom5', icon: '✨', title: 'Kreativ', desc: '5 eigene Aufgaben erstellt', condition: s => s.customTasks >= 5 },
+];
+
+const LEVEL_TITLES = [
+  'Neuling', 'Anfänger', 'Lehrling', 'Geselle', 'Experte',
+  'Meister', 'Großmeister', 'Champion', 'Legende', 'IPMA-Held'
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let state = loadState();
+let currentPhase = 'init';
+let pomoInterval = null;
+let pomoRunning = false;
+let pomoTime = 25 * 60;
+let pomoOnBreak = false;
+let pomoSessionsDone = 0;
+
+function defaultState() {
+  return {
+    completedTasks: {},
+    customTasks: {},  // { phaseKey: { categoryId: [ {id,text,desc,xp,priority} ] } }
+    xp: 0, level: 1,
+    streak: 0, lastActiveDate: null,
+    unlockedAchievements: [],
+    pomodorosDone: 0,
+    notes: {},
+    customTaskCount: 0,
+    projectName: '',
+    version: 2
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('ipma_quest_state');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s.version >= 2) return s;
+    }
+  } catch(e) {}
+  return defaultState();
+}
+
+function saveState() {
+  localStorage.setItem('ipma_quest_state', JSON.stringify(state));
+}
+
+// ============================================================
+//  XP & LEVELS
+// ============================================================
+function xpForLevel(lvl) { return 50 + (lvl * 50); }
+
+function addXP(amount) {
+  state.xp += amount;
+  let needed = xpForLevel(state.level);
+  while (state.xp >= needed) {
+    state.xp -= needed;
+    state.level++;
+    needed = xpForLevel(state.level);
+    showCelebration('🎊', `Level ${state.level} erreicht!`,
+      `Du bist jetzt: ${LEVEL_TITLES[Math.min(state.level - 1, LEVEL_TITLES.length - 1)]}`, '');
+  }
+  updateXPDisplay();
+  saveState();
+}
+
+function updateXPDisplay() {
+  const needed = xpForLevel(state.level);
+  const pct = Math.round((state.xp / needed) * 100);
+  document.getElementById('xpBar').style.width = pct + '%';
+  document.getElementById('xpBar').setAttribute('data-percent', pct + '%');
+  document.getElementById('xpText').textContent = `${state.xp} / ${needed} XP`;
+  document.getElementById('levelBadge').textContent = state.level;
+}
+
+function showXPPopup(amount) {
+  const el = document.createElement('div');
+  el.className = 'xp-popup';
+  el.textContent = `+${amount} XP`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+// ============================================================
+//  STREAK
+// ============================================================
+function updateStreak() {
+  const today = new Date().toDateString();
+  if (state.lastActiveDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.lastActiveDate === yesterday) {
+    state.streak++;
+  } else if (state.lastActiveDate !== today) {
+    state.streak = 1;
+  }
+  state.lastActiveDate = today;
+  document.getElementById('streakCount').textContent = state.streak;
+  saveState();
+}
+
+// ============================================================
+//  ACHIEVEMENTS
+// ============================================================
+function checkAchievements() {
+  const stats = getStats();
+  let newUnlocks = [];
+  ACHIEVEMENTS.forEach(a => {
+    if (!state.unlockedAchievements.includes(a.id) && a.condition(stats)) {
+      state.unlockedAchievements.push(a.id);
+      newUnlocks.push(a);
+    }
+  });
+  renderAchievements();
+  if (newUnlocks.length > 0) {
+    const a = newUnlocks[0];
+    setTimeout(() => {
+      showCelebration(a.icon, 'Achievement freigeschaltet!', a.title + ' - ' + a.desc, '+25 XP');
+      addXP(25);
+    }, 600);
+  }
+  saveState();
+}
+
+function getStats() {
+  const completedCount = Object.keys(state.completedTasks).length;
+  const phaseDone = {};
+  ['init', 'plan', 'exec', 'close'].forEach(pk => {
+    const allTasks = getAllTasksForPhase(pk);
+    phaseDone[pk] = allTasks.length > 0 && allTasks.every(t => state.completedTasks[t.id]);
+  });
+  return {
+    totalCompleted: completedCount,
+    phaseDone,
+    streak: state.streak,
+    pomodorosDone: state.pomodorosDone,
+    customTasks: state.customTaskCount
+  };
+}
+
+function getAllTasksForPhase(phaseKey) {
+  const phase = PHASES[phaseKey];
+  let tasks = [];
+  phase.categories.forEach(cat => {
+    tasks = tasks.concat(cat.tasks);
+    const custom = (state.customTasks[phaseKey] && state.customTasks[phaseKey][cat.id]) || [];
+    tasks = tasks.concat(custom);
+  });
+  return tasks;
+}
+
+function renderAchievements() {
+  const bar = document.getElementById('achievementsBar');
+  bar.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = state.unlockedAchievements.includes(a.id);
+    return `<div class="achievement tooltip ${unlocked ? 'unlocked' : ''}" data-tip="${a.title}: ${a.desc}">${a.icon}</div>`;
+  }).join('');
+}
+
+// ============================================================
+//  CELEBRATION & CONFETTI
+// ============================================================
+function showCelebration(icon, title, text, xpText) {
+  document.getElementById('celebIcon').textContent = icon;
+  document.getElementById('celebTitle').textContent = title;
+  document.getElementById('celebText').textContent = text;
+  document.getElementById('celebXp').textContent = xpText;
+  document.getElementById('celebrationOverlay').classList.add('active');
+  spawnConfetti();
+}
+
+function closeCelebration() {
+  document.getElementById('celebrationOverlay').classList.remove('active');
+}
+
+function spawnConfetti() {
+  const colors = ['#fdcb6e', '#6c5ce7', '#00b894', '#e17055', '#74b9ff', '#ff7675', '#a29bfe', '#55efc4'];
+  for (let i = 0; i < 50; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.style.width = (6 + Math.random() * 8) + 'px';
+    c.style.height = (6 + Math.random() * 8) + 'px';
+    c.style.animationDuration = (2 + Math.random() * 2) + 's';
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function switchPhase(key) {
+  currentPhase = key;
+  document.querySelectorAll('.phase-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.phase-tab[data-phase="${key}"]`).classList.add('active');
+  renderPhase();
+}
+
+function renderPhase() {
+  const phase = PHASES[currentPhase];
+  const allTasks = getAllTasksForPhase(currentPhase);
+  const doneTasks = allTasks.filter(t => state.completedTasks[t.id]);
+  const pct = allTasks.length ? Math.round((doneTasks.length / allTasks.length) * 100) : 0;
+  const totalXP = allTasks.reduce((s, t) => s + (t.xp || 0), 0);
+  const earnedXP = doneTasks.reduce((s, t) => s + (t.xp || 0), 0);
+
+  let html = `
+    <div class="phase-panel active">
+      <div class="phase-header">
+        <div class="phase-title-area">
+          <h2>${phase.title}</h2>
+          <p>${phase.subtitle}</p>
+          <div class="phase-progress-bar">
+            <div class="phase-progress-fill" style="width:${pct}%;background:${phase.color}" data-percent="${pct}%"></div>
+          </div>
+        </div>
+        <div class="phase-stats">
+          <div class="stat-card">
+            <div class="stat-num">${doneTasks.length}/${allTasks.length}</div>
+            <div class="stat-label">Aufgaben</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">${earnedXP}</div>
+            <div class="stat-label">XP verdient</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">${pct}%</div>
+            <div class="stat-label">Fortschritt</div>
+          </div>
+        </div>
+      </div>
+      <div class="task-categories">
+  `;
+
+  phase.categories.forEach(cat => {
+    const customTasks = (state.customTasks[currentPhase] && state.customTasks[currentPhase][cat.id]) || [];
+    const catTasks = [...cat.tasks, ...customTasks];
+    const catDone = catTasks.filter(t => state.completedTasks[t.id]).length;
+    const catPct = catTasks.length ? Math.round((catDone / catTasks.length) * 100) : 0;
+
+    html += `
+      <div class="task-category" id="cat_${cat.id}">
+        <div class="category-header" onclick="toggleCategory('${cat.id}')">
+          <div class="category-icon" style="background:${cat.color}">${cat.icon}</div>
+          <div class="category-info">
+            <h3>${cat.title}</h3>
+            <div class="cat-progress">${catDone}/${catTasks.length} erledigt · ${catPct}%</div>
+          </div>
+          <div class="category-toggle">▼</div>
+        </div>
+        <div class="task-list">
+    `;
+
+    catTasks.forEach(task => {
+      const done = !!state.completedTasks[task.id];
+      html += `
+        <div class="task-item ${done ? 'completed' : ''}" id="task_${task.id}">
+          <button class="task-check" onclick="toggleTask('${task.id}', ${task.xp || 0}, event)">${done ? '✓' : ''}</button>
+          <div class="task-content" onclick="toggleTask('${task.id}', ${task.xp || 0}, event)">
+            <div class="task-text">${task.text}</div>
+            <div class="task-desc">${task.desc}</div>
+            <div class="task-meta">
+              <span class="task-tag xp">+${task.xp || 0} XP</span>
+              ${task.priority === 'high' ? '<span class="task-tag priority-high">Wichtig</span>' : ''}
+              ${task.priority === 'medium' ? '<span class="task-tag priority-medium">Normal</span>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+        <div class="add-task-area">
+          <button class="add-task-btn" onclick="showAddForm('${cat.id}')">+ Eigene Aufgabe hinzufügen</button>
+          <div class="add-task-form" id="form_${cat.id}">
+            <input type="text" placeholder="Aufgabenname..." id="formTitle_${cat.id}">
+            <textarea placeholder="Beschreibung (optional)..." id="formDesc_${cat.id}"></textarea>
+            <div class="form-row">
+              <select id="formPrio_${cat.id}">
+                <option value="medium">Normal</option>
+                <option value="high">Wichtig</option>
+              </select>
+              <select id="formXP_${cat.id}">
+                <option value="5">+5 XP</option>
+                <option value="10" selected>+10 XP</option>
+                <option value="15">+15 XP</option>
+                <option value="20">+20 XP</option>
+              </select>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="addCustomTask('${cat.id}')">Hinzufügen</button>
+              <button class="btn btn-ghost" onclick="hideAddForm('${cat.id}')">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  // Notes
+  const noteKey = currentPhase;
+  html += `
+    <div class="notes-section">
+      <h3>📝 Notizen zu dieser Phase</h3>
+      <textarea class="notes-area" id="phaseNotes" placeholder="Schreibe hier deine Gedanken, Erkenntnisse und Notizen zu dieser Phase..."
+        oninput="saveNotes()">${state.notes[noteKey] || ''}</textarea>
+    </div>
+  `;
+
+  html += `</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+  updateMiniProgress();
+}
+
+function updateMiniProgress() {
+  ['init', 'plan', 'exec', 'close'].forEach(pk => {
+    const allTasks = getAllTasksForPhase(pk);
+    const done = allTasks.filter(t => state.completedTasks[t.id]).length;
+    const el = document.getElementById(pk + 'Mini');
+    if (el) el.textContent = `${done}/${allTasks.length}`;
+
+    const tab = document.querySelector(`.phase-tab[data-phase="${pk}"]`);
+    if (tab) {
+      if (allTasks.length > 0 && done === allTasks.length) {
+        tab.classList.add('completed');
+      } else {
+        tab.classList.remove('completed');
+      }
+    }
+  });
+}
+
+// ============================================================
+//  TASK ACTIONS
+// ============================================================
+function toggleTask(taskId, xp, event) {
+  event.stopPropagation();
+  updateStreak();
+
+  if (state.completedTasks[taskId]) {
+    delete state.completedTasks[taskId];
+  } else {
+    state.completedTasks[taskId] = { date: new Date().toISOString() };
+    addXP(xp);
+    showXPPopup(xp);
+
+    // Check if category/phase completed
+    const phase = PHASES[currentPhase];
+    const allTasks = getAllTasksForPhase(currentPhase);
+    const allDone = allTasks.every(t => state.completedTasks[t.id]);
+    if (allDone) {
+      const phaseNames = { init: 'Initialisierung', plan: 'Planung', exec: 'Durchführung', close: 'Abschluss' };
+      setTimeout(() => showCelebration('🎉', 'Phase abgeschlossen!',
+        `${phaseNames[currentPhase]} ist komplett!`, '+50 Bonus XP'), 400);
+      addXP(50);
+    }
+  }
+  saveState();
+  renderPhase();
+  checkAchievements();
+}
+
+function toggleCategory(catId) {
+  const el = document.getElementById('cat_' + catId);
+  if (el) el.classList.toggle('collapsed');
+}
+
+function showAddForm(catId) {
+  document.getElementById('form_' + catId).classList.add('active');
+  document.getElementById('formTitle_' + catId).focus();
+}
+
+function hideAddForm(catId) {
+  document.getElementById('form_' + catId).classList.remove('active');
+}
+
+function addCustomTask(catId) {
+  const title = document.getElementById('formTitle_' + catId).value.trim();
+  if (!title) return;
+  const desc = document.getElementById('formDesc_' + catId).value.trim();
+  const prio = document.getElementById('formPrio_' + catId).value;
+  const xp = parseInt(document.getElementById('formXP_' + catId).value);
+
+  if (!state.customTasks[currentPhase]) state.customTasks[currentPhase] = {};
+  if (!state.customTasks[currentPhase][catId]) state.customTasks[currentPhase][catId] = [];
+
+  state.customTaskCount++;
+  state.customTasks[currentPhase][catId].push({
+    id: 'custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    text: title, desc: desc || 'Eigene Aufgabe', xp, priority: prio
+  });
+
+  saveState();
+  renderPhase();
+  checkAchievements();
+}
+
+function saveNotes() {
+  state.notes[currentPhase] = document.getElementById('phaseNotes').value;
+  saveState();
+}
+
+// ============================================================
+//  POMODORO
+// ============================================================
+function togglePomodoro() {
+  document.getElementById('pomoPanel').classList.toggle('active');
+}
+
+function pomoStart() {
+  const btn = document.getElementById('pomoStartBtn');
+  if (pomoRunning) {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+    btn.textContent = 'Weiter';
+    btn.className = 'pomo-btn start';
+    return;
+  }
+  pomoRunning = true;
+  btn.textContent = 'Pause';
+  btn.className = 'pomo-btn pause';
+  pomoInterval = setInterval(() => {
+    pomoTime--;
+    if (pomoTime <= 0) {
+      clearInterval(pomoInterval);
+      pomoRunning = false;
+      btn.textContent = 'Start';
+      btn.className = 'pomo-btn start';
+      if (!pomoOnBreak) {
+        pomoSessionsDone++;
+        state.pomodorosDone++;
+        saveState();
+        updatePomoDots();
+        checkAchievements();
+        showXPPopup(5);
+        addXP(5);
+        // Switch to break
+        pomoOnBreak = true;
+        pomoTime = pomoSessionsDone % 4 === 0 ? 15 * 60 : 5 * 60;
+        document.getElementById('pomoLabel').textContent = pomoSessionsDone % 4 === 0 ? 'Lange Pause' : 'Kurze Pause';
+        new Notification?.('Pomodoro fertig! Zeit für eine Pause 🍅').catch?.(() => {});
+      } else {
+        pomoOnBreak = false;
+        pomoTime = 25 * 60;
+        document.getElementById('pomoLabel').textContent = 'Fokuszeit';
+        try { new Notification('Pause vorbei! Weiter geht\'s 💪'); } catch(e) {}
+      }
+    }
+    updatePomoDisplay();
+  }, 1000);
+}
+
+function pomoReset() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  pomoOnBreak = false;
+  pomoTime = 25 * 60;
+  document.getElementById('pomoLabel').textContent = 'Fokuszeit';
+  document.getElementById('pomoStartBtn').textContent = 'Start';
+  document.getElementById('pomoStartBtn').className = 'pomo-btn start';
+  updatePomoDisplay();
+}
+
+function updatePomoDisplay() {
+  const m = Math.floor(pomoTime / 60);
+  const s = pomoTime % 60;
+  document.getElementById('pomoDisplay').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updatePomoDots() {
+  const dots = document.querySelectorAll('.pomo-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('done', i < (pomoSessionsDone % 4 || (pomoSessionsDone > 0 ? 4 : 0)));
+  });
+}
+
+// ============================================================
+//  KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key >= '1' && e.key <= '4') {
+    const phases = ['init', 'plan', 'exec', 'close'];
+    switchPhase(phases[parseInt(e.key) - 1]);
+  }
+  if (e.key === 'p' || e.key === 'P') togglePomodoro();
+  if (e.key === 'Escape') closeCelebration();
+});
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  // Check streak
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.lastActiveDate && state.lastActiveDate !== today && state.lastActiveDate !== yesterday) {
+    state.streak = 0;
+  }
+  document.getElementById('streakCount').textContent = state.streak;
+
+  updateXPDisplay();
+  renderAchievements();
+  renderPhase();
+  updatePomoDots();
+
+  // Request notification permission
+  try { Notification?.requestPermission?.(); } catch(e) {}
+}
+
+init();
+</script>
+</body>
+</html>
