@@ -1204,7 +1204,7 @@ function pomoStart() {
         pomoOnBreak = true;
         pomoTime = pomoSessionsDone % 4 === 0 ? 15 * 60 : 5 * 60;
         document.getElementById('pomoLabel').textContent = pomoSessionsDone % 4 === 0 ? 'Lange Pause' : 'Kurze Pause';
-        new Notification?.('Pomodoro fertig! Zeit für eine Pause 🍅').catch?.(() => {});
+        try { new Notification('Pomodoro fertig! Zeit für eine Pause 🍅'); } catch(e) {}
       } else {
         pomoOnBreak = false;
         pomoTime = 25 * 60;
@@ -1272,7 +1272,7 @@ function init() {
   updatePomoDots();
 
   // Request notification permission
-  try { Notification?.requestPermission?.(); } catch(e) {}
+  try { if (typeof Notification !== 'undefined') Notification.requestPermission(); } catch(e) {}
 }
 
 init();
