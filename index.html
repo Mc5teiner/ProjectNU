@@ -477,6 +477,23 @@ body {
 .task-edit-form .edit-row { display: flex; gap: 8px; }
 .task-edit-form .edit-row select { flex: 1; }
 .task-item.editing { background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 12px; }
+.task-data-area {
+  margin-top: 6px; width: 100%;
+}
+.task-data-area textarea {
+  width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+  color: var(--text); font-size: 0.82rem; font-family: inherit;
+  resize: vertical; min-height: 60px; line-height: 1.5;
+  transition: border-color 0.2s;
+}
+.task-data-area textarea:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.05); }
+.task-data-area textarea::placeholder { color: rgba(255,255,255,0.2); }
+.task-data-badge {
+  display: inline-block; font-size: 0.6rem; padding: 1px 6px; border-radius: 8px;
+  background: rgba(0,184,148,0.15); color: var(--success); margin-left: 4px;
+  vertical-align: middle;
+}
 
 /* ============ KEYBOARD HINT ============ */
 .kbd-hint {
@@ -607,29 +624,30 @@ const PHASES = {
         id: 'init_charter', icon: '📜', title: 'Projektauftrag (Charter)',
         color: 'var(--phase1)',
         tasks: [
-          { id: 't1', text: 'Projektname & Kurzbeschreibung festlegen', desc: 'Gib deinem Projekt einen klaren, einprägsamen Namen und beschreibe es in 2-3 Sätzen.', xp: 10, priority: 'high' },
-          { id: 't2', text: 'Projektziele definieren (SMART)', desc: 'Formuliere messbare, erreichbare Ziele mit klarem Zeitrahmen.', xp: 20, priority: 'high' },
-          { id: 't3', text: 'Projektumfang (Scope) abgrenzen', desc: 'Was gehört zum Projekt? Was nicht? Definiere klare Grenzen.', xp: 15, priority: 'high' },
-          { id: 't4', text: 'Business Case erstellen', desc: 'Warum lohnt sich dieses Projekt? Kosten-Nutzen-Analyse skizzieren.', xp: 15, priority: 'medium' },
+          { id: 't1', text: 'Projektname & Kurzbeschreibung festlegen', desc: 'Gib deinem Projekt einen klaren, einprägsamen Namen und beschreibe es in 2-3 Sätzen.', xp: 10, priority: 'high', placeholder: 'Projektname: ...\nKurzbeschreibung: ...' },
+          { id: 't2', text: 'Projektziele definieren (SMART)', desc: 'Formuliere messbare, erreichbare Ziele mit klarem Zeitrahmen.', xp: 20, priority: 'high', placeholder: 'Ziel 1: ...\nZiel 2: ...\nZiel 3: ...' },
+          { id: 't2b', text: 'Nicht-Ziele definieren', desc: 'Was wird bewusst NICHT im Projekt behandelt? Klare Abgrenzung verhindert Scope Creep.', xp: 15, priority: 'high', placeholder: 'Nicht-Ziel 1: ...\nNicht-Ziel 2: ...' },
+          { id: 't3', text: 'Projektumfang (Scope) abgrenzen', desc: 'Was gehört zum Projekt? Was nicht? Definiere klare Grenzen.', xp: 15, priority: 'high', placeholder: 'Im Scope:\n- ...\n\nAußerhalb des Scope:\n- ...' },
+          { id: 't4', text: 'Business Case erstellen', desc: 'Warum lohnt sich dieses Projekt? Kosten-Nutzen-Analyse skizzieren.', xp: 15, priority: 'medium', placeholder: 'Nutzen: ...\nKosten: ...\nROI / Amortisation: ...' },
         ]
       },
       {
         id: 'init_stake', icon: '👥', title: 'Stakeholder-Analyse',
         color: 'var(--phase1-light)',
         tasks: [
-          { id: 't5', text: 'Stakeholder identifizieren', desc: 'Wer hat Einfluss auf oder Interesse an deinem Projekt?', xp: 10, priority: 'high' },
-          { id: 't6', text: 'Stakeholder-Matrix erstellen', desc: 'Einfluss vs. Interesse Matrix aufbauen. Wer muss eng eingebunden werden?', xp: 15, priority: 'medium' },
-          { id: 't7', text: 'Kommunikationsstrategie je Stakeholder', desc: 'Wie und wie oft kommunizierst du mit welchem Stakeholder?', xp: 15, priority: 'medium' },
+          { id: 't5', text: 'Stakeholder identifizieren', desc: 'Wer hat Einfluss auf oder Interesse an deinem Projekt?', xp: 10, priority: 'high', placeholder: 'Stakeholder 1: ... (Rolle: ...)\nStakeholder 2: ... (Rolle: ...)\nStakeholder 3: ...' },
+          { id: 't6', text: 'Stakeholder-Matrix erstellen', desc: 'Einfluss vs. Interesse Matrix aufbauen. Wer muss eng eingebunden werden?', xp: 15, priority: 'medium', placeholder: 'Hoher Einfluss + Hohes Interesse:\n- ...\nHoher Einfluss + Niedriges Interesse:\n- ...\nNiedriger Einfluss + Hohes Interesse:\n- ...' },
+          { id: 't7', text: 'Kommunikationsstrategie je Stakeholder', desc: 'Wie und wie oft kommunizierst du mit welchem Stakeholder?', xp: 15, priority: 'medium', placeholder: 'Stakeholder → Kanal → Frequenz:\n- ... → E-Mail → Wöchentlich\n- ... → Meeting → Monatlich' },
         ]
       },
       {
         id: 'init_org', icon: '🏗️', title: 'Projektorganisation',
         color: 'var(--phase1)',
         tasks: [
-          { id: 't8', text: 'Projektleiter & Auftraggeber benennen', desc: 'Wer führt das Projekt? Wer ist der Sponsor?', xp: 10, priority: 'high' },
-          { id: 't9', text: 'Kernteam zusammenstellen', desc: 'Welche Rollen und Kompetenzen brauchst du im Team?', xp: 10, priority: 'high' },
-          { id: 't10', text: 'Rollen & Verantwortlichkeiten klären (RACI)', desc: 'Responsible, Accountable, Consulted, Informed - für jede Aufgabe.', xp: 15, priority: 'medium' },
-          { id: 't11', text: 'Kick-off Meeting planen', desc: 'Datum, Agenda, Teilnehmer für den offiziellen Projektstart.', xp: 10, priority: 'medium' },
+          { id: 't8', text: 'Projektleiter & Auftraggeber benennen', desc: 'Wer führt das Projekt? Wer ist der Sponsor?', xp: 10, priority: 'high', placeholder: 'Projektleiter: ...\nAuftraggeber/Sponsor: ...' },
+          { id: 't9', text: 'Kernteam zusammenstellen', desc: 'Welche Rollen und Kompetenzen brauchst du im Team?', xp: 10, priority: 'high', placeholder: 'Teammitglied 1: ... (Rolle: ...)\nTeammitglied 2: ... (Rolle: ...)\nTeammitglied 3: ...' },
+          { id: 't10', text: 'Rollen & Verantwortlichkeiten klären (RACI)', desc: 'Responsible, Accountable, Consulted, Informed - für jede Aufgabe.', xp: 15, priority: 'medium', placeholder: 'Aufgabe → R / A / C / I:\n- ... → ... / ... / ... / ...' },
+          { id: 't11', text: 'Kick-off Meeting planen', desc: 'Datum, Agenda, Teilnehmer für den offiziellen Projektstart.', xp: 10, priority: 'medium', placeholder: 'Datum: ...\nOrt/Format: ...\nAgenda:\n1. ...\n2. ...\nTeilnehmer: ...' },
         ]
       }
     ]
@@ -643,47 +661,47 @@ const PHASES = {
         id: 'plan_scope', icon: '🎯', title: 'Inhalts- & Umfangsplanung',
         color: 'var(--phase2)',
         tasks: [
-          { id: 'p1', text: 'Projektstrukturplan (PSP/WBS) erstellen', desc: 'Zerlege dein Projekt in übersichtliche Arbeitspakete.', xp: 25, priority: 'high' },
-          { id: 'p2', text: 'Arbeitspakete detailliert beschreiben', desc: 'Für jedes Arbeitspaket: Inhalt, Ergebnis, Aufwand.', xp: 20, priority: 'high' },
-          { id: 'p3', text: 'Liefergegenstände (Deliverables) definieren', desc: 'Was wird wann abgeliefert? Messbare Ergebnisse festlegen.', xp: 15, priority: 'high' },
+          { id: 'p1', text: 'Projektstrukturplan (PSP/WBS) erstellen', desc: 'Zerlege dein Projekt in übersichtliche Arbeitspakete.', xp: 25, priority: 'high', placeholder: 'Arbeitspaket 1: ...\n  Teilaufgabe 1.1: ...\n  Teilaufgabe 1.2: ...\nArbeitspaket 2: ...' },
+          { id: 'p2', text: 'Arbeitspakete detailliert beschreiben', desc: 'Für jedes Arbeitspaket: Inhalt, Ergebnis, Aufwand.', xp: 20, priority: 'high', placeholder: 'AP 1: ...\n  Inhalt: ...\n  Ergebnis: ...\n  Aufwand: ... PT\nAP 2: ...' },
+          { id: 'p3', text: 'Liefergegenstände (Deliverables) definieren', desc: 'Was wird wann abgeliefert? Messbare Ergebnisse festlegen.', xp: 15, priority: 'high', placeholder: 'Deliverable 1: ... (Fällig: ...)\nDeliverable 2: ... (Fällig: ...)' },
         ]
       },
       {
         id: 'plan_time', icon: '📅', title: 'Terminplanung',
         color: 'var(--phase2-light)',
         tasks: [
-          { id: 'p4', text: 'Meilensteine definieren', desc: 'Wichtige Zwischenziele und Entscheidungspunkte festlegen.', xp: 15, priority: 'high' },
-          { id: 'p5', text: 'Vorgänge & Abhängigkeiten identifizieren', desc: 'Welche Aufgaben hängen voneinander ab?', xp: 20, priority: 'high' },
-          { id: 'p6', text: 'Zeitplan / Gantt-Diagramm erstellen', desc: 'Visueller Zeitplan mit Start- und Endterminen.', xp: 20, priority: 'high' },
-          { id: 'p7', text: 'Kritischen Pfad identifizieren', desc: 'Welche Vorgangskette bestimmt die Mindestdauer?', xp: 15, priority: 'medium' },
-          { id: 'p8', text: 'Pufferzeiten einplanen', desc: 'Realistische Puffer für unvorhergesehene Verzögerungen.', xp: 10, priority: 'medium' },
+          { id: 'p4', text: 'Meilensteine definieren', desc: 'Wichtige Zwischenziele und Entscheidungspunkte festlegen.', xp: 15, priority: 'high', placeholder: 'MS 1: ... (Datum: ...)\nMS 2: ... (Datum: ...)\nMS 3: ...' },
+          { id: 'p5', text: 'Vorgänge & Abhängigkeiten identifizieren', desc: 'Welche Aufgaben hängen voneinander ab?', xp: 20, priority: 'high', placeholder: 'Vorgang A → muss vor B fertig sein\nVorgang C → kann parallel zu D laufen\n...' },
+          { id: 'p6', text: 'Zeitplan / Gantt-Diagramm erstellen', desc: 'Visueller Zeitplan mit Start- und Endterminen.', xp: 20, priority: 'high', placeholder: 'Phase/AP → Start → Ende:\n- ... → ... → ...\n- ... → ... → ...' },
+          { id: 'p7', text: 'Kritischen Pfad identifizieren', desc: 'Welche Vorgangskette bestimmt die Mindestdauer?', xp: 15, priority: 'medium', placeholder: 'Kritischer Pfad: A → C → F → H\nGesamtdauer: ... Tage/Wochen' },
+          { id: 'p8', text: 'Pufferzeiten einplanen', desc: 'Realistische Puffer für unvorhergesehene Verzögerungen.', xp: 10, priority: 'medium', placeholder: 'Puffer pro Phase:\n- Initialisierung: ... Tage\n- Planung: ... Tage\n- Durchführung: ... Tage\nGesamtpuffer: ...' },
         ]
       },
       {
         id: 'plan_cost', icon: '💰', title: 'Kosten- & Ressourcenplanung',
         color: 'var(--phase2)',
         tasks: [
-          { id: 'p9', text: 'Ressourcenbedarf pro Arbeitspaket schätzen', desc: 'Personal, Material, Budget pro Paket kalkulieren.', xp: 20, priority: 'high' },
-          { id: 'p10', text: 'Gesamtbudget aufstellen', desc: 'Alle Kosten zusammenfassen und Budget genehmigen lassen.', xp: 15, priority: 'high' },
-          { id: 'p11', text: 'Ressourcenkalender erstellen', desc: 'Wer ist wann verfügbar? Urlaubszeiten beachten!', xp: 10, priority: 'medium' },
+          { id: 'p9', text: 'Ressourcenbedarf pro Arbeitspaket schätzen', desc: 'Personal, Material, Budget pro Paket kalkulieren.', xp: 20, priority: 'high', placeholder: 'AP 1: ... Personen, ... €\nAP 2: ... Personen, ... €\n...' },
+          { id: 'p10', text: 'Gesamtbudget aufstellen', desc: 'Alle Kosten zusammenfassen und Budget genehmigen lassen.', xp: 15, priority: 'high', placeholder: 'Personalkosten: ... €\nSachkosten: ... €\nExterne Kosten: ... €\nReserve: ... €\nGesamt: ... €' },
+          { id: 'p11', text: 'Ressourcenkalender erstellen', desc: 'Wer ist wann verfügbar? Urlaubszeiten beachten!', xp: 10, priority: 'medium', placeholder: 'Person → Verfügbarkeit:\n- ... → ... % (Urlaub: ...)\n- ... → ... %' },
         ]
       },
       {
         id: 'plan_risk', icon: '⚠️', title: 'Risikomanagement',
         color: 'var(--phase2-light)',
         tasks: [
-          { id: 'p12', text: 'Risiken identifizieren', desc: 'Brainstorming: Was könnte schiefgehen?', xp: 15, priority: 'high' },
-          { id: 'p13', text: 'Risiken bewerten (Wahrscheinlichkeit × Auswirkung)', desc: 'Risikomatrix erstellen und priorisieren.', xp: 20, priority: 'high' },
-          { id: 'p14', text: 'Gegenmaßnahmen planen', desc: 'Für Top-Risiken: Vermeiden, Vermindern, Verlagern oder Akzeptieren.', xp: 15, priority: 'medium' },
+          { id: 'p12', text: 'Risiken identifizieren', desc: 'Brainstorming: Was könnte schiefgehen?', xp: 15, priority: 'high', placeholder: 'Risiko 1: ...\nRisiko 2: ...\nRisiko 3: ...' },
+          { id: 'p13', text: 'Risiken bewerten (Wahrscheinlichkeit × Auswirkung)', desc: 'Risikomatrix erstellen und priorisieren.', xp: 20, priority: 'high', placeholder: 'Risiko → W × A = Score:\n- ... → hoch × hoch = kritisch\n- ... → mittel × hoch = hoch\n- ... → niedrig × mittel = niedrig' },
+          { id: 'p14', text: 'Gegenmaßnahmen planen', desc: 'Für Top-Risiken: Vermeiden, Vermindern, Verlagern oder Akzeptieren.', xp: 15, priority: 'medium', placeholder: 'Risiko → Strategie → Maßnahme:\n- ... → Vermindern → ...\n- ... → Vermeiden → ...' },
         ]
       },
       {
         id: 'plan_qual', icon: '✅', title: 'Qualitäts- & Kommunikationsplanung',
         color: 'var(--phase2)',
         tasks: [
-          { id: 'p15', text: 'Qualitätskriterien festlegen', desc: 'Wie wird Qualität gemessen und sichergestellt?', xp: 10, priority: 'medium' },
-          { id: 'p16', text: 'Kommunikationsplan erstellen', desc: 'Wer berichtet wem, wann, in welcher Form?', xp: 15, priority: 'medium' },
-          { id: 'p17', text: 'Dokumentationsstandards definieren', desc: 'Vorlagen, Ablage, Versionierung - alles klar regeln.', xp: 10, priority: 'medium' },
+          { id: 'p15', text: 'Qualitätskriterien festlegen', desc: 'Wie wird Qualität gemessen und sichergestellt?', xp: 10, priority: 'medium', placeholder: 'Kriterium 1: ...\nMessmethode: ...\nKriterium 2: ...' },
+          { id: 'p16', text: 'Kommunikationsplan erstellen', desc: 'Wer berichtet wem, wann, in welcher Form?', xp: 15, priority: 'medium', placeholder: 'Was → Wer → An wen → Wann → Wie:\n- Statusbericht → PL → Auftraggeber → Wöchentlich → E-Mail\n- Stand-up → Team → Team → Täglich → Meeting' },
+          { id: 'p17', text: 'Dokumentationsstandards definieren', desc: 'Vorlagen, Ablage, Versionierung - alles klar regeln.', xp: 10, priority: 'medium', placeholder: 'Ablageort: ...\nNamenschema: ...\nVersionierung: ...\nVorlagen: ...' },
         ]
       }
     ]
@@ -697,37 +715,37 @@ const PHASES = {
         id: 'exec_work', icon: '🔨', title: 'Arbeitspakete umsetzen',
         color: 'var(--phase3)',
         tasks: [
-          { id: 'e1', text: 'Erstes Arbeitspaket starten', desc: 'Los geht\'s! Starte mit dem wichtigsten Arbeitspaket.', xp: 20, priority: 'high' },
-          { id: 'e2', text: 'Fortschritt dokumentieren', desc: 'Halte regelmäßig fest, was erledigt wurde.', xp: 10, priority: 'medium' },
-          { id: 'e3', text: 'Team-Koordination sicherstellen', desc: 'Regelmäßige Stand-ups oder Status-Meetings.', xp: 10, priority: 'medium' },
+          { id: 'e1', text: 'Erstes Arbeitspaket starten', desc: 'Los geht\'s! Starte mit dem wichtigsten Arbeitspaket.', xp: 20, priority: 'high', placeholder: 'Gestartetes AP: ...\nVerantwortlich: ...\nStartdatum: ...' },
+          { id: 'e2', text: 'Fortschritt dokumentieren', desc: 'Halte regelmäßig fest, was erledigt wurde.', xp: 10, priority: 'medium', placeholder: 'Datum - Fortschritt:\n- ... - ...\n- ... - ...' },
+          { id: 'e3', text: 'Team-Koordination sicherstellen', desc: 'Regelmäßige Stand-ups oder Status-Meetings.', xp: 10, priority: 'medium', placeholder: 'Meeting-Rhythmus: ...\nTeilnehmer: ...\nFormat: ...' },
         ]
       },
       {
         id: 'exec_control', icon: '📊', title: 'Projektsteuerung',
         color: 'var(--phase3-light)',
         tasks: [
-          { id: 'e4', text: 'Soll-Ist-Vergleich durchführen', desc: 'Termine, Kosten, Leistung - wo stehst du wirklich?', xp: 15, priority: 'high' },
-          { id: 'e5', text: 'Meilenstein-Review durchführen', desc: 'Wurden die Meilensteine erreicht? Qualität ok?', xp: 15, priority: 'high' },
-          { id: 'e6', text: 'Statusbericht erstellen', desc: 'Ampelstatus, Fortschritt, Probleme, nächste Schritte.', xp: 10, priority: 'medium' },
-          { id: 'e7', text: 'Budget-Tracking aktualisieren', desc: 'Wie viel Budget ist verbraucht? Prognose für Rest?', xp: 10, priority: 'medium' },
+          { id: 'e4', text: 'Soll-Ist-Vergleich durchführen', desc: 'Termine, Kosten, Leistung - wo stehst du wirklich?', xp: 15, priority: 'high', placeholder: 'Termine: Soll ... → Ist ...\nKosten: Soll ... € → Ist ... €\nLeistung: ... % fertig' },
+          { id: 'e5', text: 'Meilenstein-Review durchführen', desc: 'Wurden die Meilensteine erreicht? Qualität ok?', xp: 15, priority: 'high', placeholder: 'MS 1: erreicht / nicht erreicht\nMS 2: ...\nQualität: ...' },
+          { id: 'e6', text: 'Statusbericht erstellen', desc: 'Ampelstatus, Fortschritt, Probleme, nächste Schritte.', xp: 10, priority: 'medium', placeholder: 'Ampel: 🟢 / 🟡 / 🔴\nFortschritt: ... %\nProbleme: ...\nNächste Schritte: ...' },
+          { id: 'e7', text: 'Budget-Tracking aktualisieren', desc: 'Wie viel Budget ist verbraucht? Prognose für Rest?', xp: 10, priority: 'medium', placeholder: 'Budget gesamt: ... €\nVerbraucht: ... €\nPrognose Restkosten: ... €' },
         ]
       },
       {
         id: 'exec_change', icon: '🔄', title: 'Änderungsmanagement',
         color: 'var(--phase3)',
         tasks: [
-          { id: 'e8', text: 'Change Requests erfassen', desc: 'Alle Änderungswünsche formal dokumentieren.', xp: 10, priority: 'medium' },
-          { id: 'e9', text: 'Änderungsauswirkungen bewerten', desc: 'Was bedeutet die Änderung für Zeit, Kosten, Qualität?', xp: 15, priority: 'medium' },
-          { id: 'e10', text: 'Risiko-Register aktualisieren', desc: 'Neue Risiken? Alte Risiken eingetreten?', xp: 10, priority: 'medium' },
+          { id: 'e8', text: 'Change Requests erfassen', desc: 'Alle Änderungswünsche formal dokumentieren.', xp: 10, priority: 'medium', placeholder: 'CR 1: ... (Status: genehmigt/offen/abgelehnt)\nCR 2: ...' },
+          { id: 'e9', text: 'Änderungsauswirkungen bewerten', desc: 'Was bedeutet die Änderung für Zeit, Kosten, Qualität?', xp: 15, priority: 'medium', placeholder: 'CR → Zeitauswirkung → Kostenauswirkung:\n- ... → +... Tage → +... €' },
+          { id: 'e10', text: 'Risiko-Register aktualisieren', desc: 'Neue Risiken? Alte Risiken eingetreten?', xp: 10, priority: 'medium', placeholder: 'Neue Risiken: ...\nEingetretene Risiken: ...\nEntfallene Risiken: ...' },
         ]
       },
       {
         id: 'exec_comm', icon: '📣', title: 'Stakeholder-Management',
         color: 'var(--phase3-light)',
         tasks: [
-          { id: 'e11', text: 'Stakeholder-Updates liefern', desc: 'Regelmäßige Updates an alle relevanten Stakeholder.', xp: 10, priority: 'medium' },
-          { id: 'e12', text: 'Eskalationen managen', desc: 'Probleme rechtzeitig nach oben kommunizieren.', xp: 15, priority: 'high' },
-          { id: 'e13', text: 'Team-Motivation aufrecht erhalten', desc: 'Erfolge feiern, Hindernisse beseitigen.', xp: 10, priority: 'medium' },
+          { id: 'e11', text: 'Stakeholder-Updates liefern', desc: 'Regelmäßige Updates an alle relevanten Stakeholder.', xp: 10, priority: 'medium', placeholder: 'Update an: ...\nInhalt: ...\nDatum: ...' },
+          { id: 'e12', text: 'Eskalationen managen', desc: 'Probleme rechtzeitig nach oben kommunizieren.', xp: 15, priority: 'high', placeholder: 'Eskalation: ...\nAn wen: ...\nStatus: ...' },
+          { id: 'e13', text: 'Team-Motivation aufrecht erhalten', desc: 'Erfolge feiern, Hindernisse beseitigen.', xp: 10, priority: 'medium', placeholder: 'Erfolge gefeiert: ...\nHindernisse beseitigt: ...' },
         ]
       }
     ]
@@ -741,28 +759,28 @@ const PHASES = {
         id: 'close_deliver', icon: '📦', title: 'Ergebnisse übergeben',
         color: 'var(--phase4)',
         tasks: [
-          { id: 'c1', text: 'Abnahme der Liefergegenstände', desc: 'Formale Abnahme durch Auftraggeber einholen.', xp: 25, priority: 'high' },
-          { id: 'c2', text: 'Projektdokumentation finalisieren', desc: 'Alle Dokumente aktualisieren und zusammenstellen.', xp: 15, priority: 'high' },
-          { id: 'c3', text: 'Wissenstransfer durchführen', desc: 'Know-how an Betrieb/Linie übergeben.', xp: 15, priority: 'medium' },
+          { id: 'c1', text: 'Abnahme der Liefergegenstände', desc: 'Formale Abnahme durch Auftraggeber einholen.', xp: 25, priority: 'high', placeholder: 'Deliverable → Abgenommen am → Durch:\n- ... → ... → ...' },
+          { id: 'c2', text: 'Projektdokumentation finalisieren', desc: 'Alle Dokumente aktualisieren und zusammenstellen.', xp: 15, priority: 'high', placeholder: 'Dokumente finalisiert:\n- ...\n- ...\nAblageort: ...' },
+          { id: 'c3', text: 'Wissenstransfer durchführen', desc: 'Know-how an Betrieb/Linie übergeben.', xp: 15, priority: 'medium', placeholder: 'Übergeben an: ...\nThemen: ...\nDatum: ...' },
         ]
       },
       {
         id: 'close_review', icon: '🔍', title: 'Lessons Learned',
         color: 'var(--phase4-light)',
         tasks: [
-          { id: 'c4', text: 'Lessons Learned Workshop durchführen', desc: 'Was lief gut? Was können wir besser machen?', xp: 20, priority: 'high' },
-          { id: 'c5', text: 'Soll-Ist-Vergleich final erstellen', desc: 'Endgültiger Vergleich: Plan vs. Realität.', xp: 15, priority: 'medium' },
-          { id: 'c6', text: 'Erfahrungsbericht schreiben', desc: 'Dokumentiere die wichtigsten Erkenntnisse.', xp: 15, priority: 'medium' },
+          { id: 'c4', text: 'Lessons Learned Workshop durchführen', desc: 'Was lief gut? Was können wir besser machen?', xp: 20, priority: 'high', placeholder: 'Was lief gut:\n- ...\nWas lief schlecht:\n- ...\nVerbesserungen für nächstes Mal:\n- ...' },
+          { id: 'c5', text: 'Soll-Ist-Vergleich final erstellen', desc: 'Endgültiger Vergleich: Plan vs. Realität.', xp: 15, priority: 'medium', placeholder: 'Termine: Soll ... → Ist ...\nBudget: Soll ... € → Ist ... €\nQualität: ...' },
+          { id: 'c6', text: 'Erfahrungsbericht schreiben', desc: 'Dokumentiere die wichtigsten Erkenntnisse.', xp: 15, priority: 'medium', placeholder: 'Wichtigste Erkenntnisse:\n1. ...\n2. ...\n3. ...' },
         ]
       },
       {
         id: 'close_admin', icon: '📋', title: 'Administrative Abschluss',
         color: 'var(--phase4)',
         tasks: [
-          { id: 'c7', text: 'Verträge & Bestellungen abschließen', desc: 'Alle offenen Verträge formal beenden.', xp: 10, priority: 'medium' },
-          { id: 'c8', text: 'Ressourcen freigeben', desc: 'Teammitglieder, Räume, Equipment zurückgeben.', xp: 10, priority: 'medium' },
-          { id: 'c9', text: 'Abschlussbericht erstellen', desc: 'Zusammenfassender Bericht für Auftraggeber und Management.', xp: 20, priority: 'high' },
-          { id: 'c10', text: 'Projekterfolg feiern! 🎉', desc: 'Vergiss nicht, den Erfolg mit dem Team zu feiern!', xp: 30, priority: 'high' },
+          { id: 'c7', text: 'Verträge & Bestellungen abschließen', desc: 'Alle offenen Verträge formal beenden.', xp: 10, priority: 'medium', placeholder: 'Vertrag/Bestellung → Status:\n- ... → abgeschlossen\n- ... → offen' },
+          { id: 'c8', text: 'Ressourcen freigeben', desc: 'Teammitglieder, Räume, Equipment zurückgeben.', xp: 10, priority: 'medium', placeholder: 'Freigegebene Ressourcen:\n- ... (ab: ...)\n- ...' },
+          { id: 'c9', text: 'Abschlussbericht erstellen', desc: 'Zusammenfassender Bericht für Auftraggeber und Management.', xp: 20, priority: 'high', placeholder: 'Zusammenfassung: ...\nZielerreichung: ...\nEmpfehlungen: ...' },
+          { id: 'c10', text: 'Projekterfolg feiern! 🎉', desc: 'Vergiss nicht, den Erfolg mit dem Team zu feiern!', xp: 30, priority: 'high', placeholder: 'Feier geplant am: ...\nFormat: ...\nHighlights: ...' },
         ]
       }
     ]
@@ -805,6 +823,7 @@ function defaultState() {
     completedTasks: {},
     customTasks: {},  // { phaseKey: { categoryId: [ {id,text,desc,xp,priority} ] } }
     taskOverrides: {}, // { taskId: { text, desc, xp, priority } }
+    taskData: {},      // { taskId: string } - user-entered content per task
     xp: 0, level: 1,
     streak: 0, lastActiveDate: null,
     unlockedAchievements: [],
@@ -1055,14 +1074,22 @@ function renderPhase() {
       const t = isCustomTask(task.id) ? task : applyOverride(task);
       const done = !!state.completedTasks[t.id];
       const custom = isCustomTask(t.id);
-      const escapedText = t.text.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-      const escapedDesc = t.desc.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+      const hasData = !!(state.taskData && state.taskData[t.id]);
+      const dataVal = (state.taskData && state.taskData[t.id]) || '';
+      const safeDataVal = dataVal.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const ph = t.placeholder || 'Hier deine Eingaben eintragen...';
       html += `
         <div class="task-item ${done ? 'completed' : ''}" id="task_${t.id}">
           <button class="task-check" onclick="toggleTask('${t.id}', ${t.xp || 0}, event)">${done ? '✓' : ''}</button>
-          <div class="task-content" onclick="toggleTask('${t.id}', ${t.xp || 0}, event)">
-            <div class="task-text">${t.text}</div>
+          <div class="task-content">
+            <div class="task-text" onclick="toggleTask('${t.id}', ${t.xp || 0}, event)">
+              ${t.text}${hasData ? '<span class="task-data-badge">Daten</span>' : ''}
+            </div>
             <div class="task-desc">${t.desc}</div>
+            <div class="task-data-area">
+              <textarea id="data_${t.id}" placeholder="${ph.replace(/"/g, '&quot;')}"
+                oninput="saveTaskData('${t.id}')" onclick="event.stopPropagation()">${safeDataVal}</textarea>
+            </div>
             <div class="task-meta">
               <span class="task-tag xp">+${t.xp || 0} XP</span>
               ${t.priority === 'high' ? '<span class="task-tag priority-high">Wichtig</span>' : ''}
@@ -1208,6 +1235,14 @@ function addCustomTask(catId) {
 
 function saveNotes() {
   state.notes[currentPhase] = document.getElementById('phaseNotes').value;
+  saveState();
+}
+
+function saveTaskData(taskId) {
+  if (!state.taskData) state.taskData = {};
+  const el = document.getElementById('data_' + taskId);
+  if (!el) return;
+  state.taskData[taskId] = el.value;
   saveState();
 }
 
