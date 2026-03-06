@@ -452,6 +452,32 @@ body {
   50% { box-shadow: 0 0 20px var(--accent-glow); }
 }
 
+/* ============ TASK EDIT ============ */
+.task-actions {
+  display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity 0.2s;
+}
+.task-item:hover .task-actions { opacity: 1; }
+.task-action-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: none;
+  background: rgba(255,255,255,0.06); color: var(--text-muted);
+  cursor: pointer; font-size: 0.75rem; display: flex;
+  align-items: center; justify-content: center; transition: all 0.2s;
+}
+.task-action-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+.task-action-btn.delete:hover { background: rgba(214,48,49,0.2); color: var(--danger); }
+.task-edit-form {
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+}
+.task-edit-form input, .task-edit-form textarea, .task-edit-form select {
+  width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.15); background: var(--bg);
+  color: var(--text); font-size: 0.85rem; font-family: inherit;
+}
+.task-edit-form textarea { resize: vertical; min-height: 50px; }
+.task-edit-form .edit-row { display: flex; gap: 8px; }
+.task-edit-form .edit-row select { flex: 1; }
+.task-item.editing { background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 12px; }
+
 /* ============ KEYBOARD HINT ============ */
 .kbd-hint {
   position: fixed; bottom: 24px; left: 24px;
@@ -778,6 +804,7 @@ function defaultState() {
   return {
     completedTasks: {},
     customTasks: {},  // { phaseKey: { categoryId: [ {id,text,desc,xp,priority} ] } }
+    taskOverrides: {}, // { taskId: { text, desc, xp, priority } }
     xp: 0, level: 1,
     streak: 0, lastActiveDate: null,
     unlockedAchievements: [],
@@ -896,15 +923,25 @@ function getStats() {
   };
 }
 
+function applyOverride(task) {
+  const o = state.taskOverrides[task.id];
+  if (!o) return task;
+  return { ...task, ...o };
+}
+
 function getAllTasksForPhase(phaseKey) {
   const phase = PHASES[phaseKey];
   let tasks = [];
   phase.categories.forEach(cat => {
-    tasks = tasks.concat(cat.tasks);
+    tasks = tasks.concat(cat.tasks.map(applyOverride));
     const custom = (state.customTasks[phaseKey] && state.customTasks[phaseKey][cat.id]) || [];
     tasks = tasks.concat(custom);
   });
   return tasks;
+}
+
+function isCustomTask(taskId) {
+  return taskId.startsWith('custom_');
 }
 
 function renderAchievements() {
@@ -1015,18 +1052,26 @@ function renderPhase() {
     `;
 
     catTasks.forEach(task => {
-      const done = !!state.completedTasks[task.id];
+      const t = isCustomTask(task.id) ? task : applyOverride(task);
+      const done = !!state.completedTasks[t.id];
+      const custom = isCustomTask(t.id);
+      const escapedText = t.text.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+      const escapedDesc = t.desc.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
       html += `
-        <div class="task-item ${done ? 'completed' : ''}" id="task_${task.id}">
-          <button class="task-check" onclick="toggleTask('${task.id}', ${task.xp || 0}, event)">${done ? '✓' : ''}</button>
-          <div class="task-content" onclick="toggleTask('${task.id}', ${task.xp || 0}, event)">
-            <div class="task-text">${task.text}</div>
-            <div class="task-desc">${task.desc}</div>
+        <div class="task-item ${done ? 'completed' : ''}" id="task_${t.id}">
+          <button class="task-check" onclick="toggleTask('${t.id}', ${t.xp || 0}, event)">${done ? '✓' : ''}</button>
+          <div class="task-content" onclick="toggleTask('${t.id}', ${t.xp || 0}, event)">
+            <div class="task-text">${t.text}</div>
+            <div class="task-desc">${t.desc}</div>
             <div class="task-meta">
-              <span class="task-tag xp">+${task.xp || 0} XP</span>
-              ${task.priority === 'high' ? '<span class="task-tag priority-high">Wichtig</span>' : ''}
-              ${task.priority === 'medium' ? '<span class="task-tag priority-medium">Normal</span>' : ''}
+              <span class="task-tag xp">+${t.xp || 0} XP</span>
+              ${t.priority === 'high' ? '<span class="task-tag priority-high">Wichtig</span>' : ''}
+              ${t.priority === 'medium' ? '<span class="task-tag priority-medium">Normal</span>' : ''}
             </div>
+          </div>
+          <div class="task-actions">
+            <button class="task-action-btn" onclick="startEditTask('${t.id}', '${cat.id}', event)" title="Bearbeiten">✏</button>
+            ${custom ? `<button class="task-action-btn delete" onclick="deleteTask('${t.id}', '${cat.id}', event)" title="Löschen">✕</button>` : ''}
           </div>
         </div>
       `;
@@ -1164,6 +1209,112 @@ function addCustomTask(catId) {
 function saveNotes() {
   state.notes[currentPhase] = document.getElementById('phaseNotes').value;
   saveState();
+}
+
+// ============================================================
+//  EDIT & DELETE TASKS
+// ============================================================
+function startEditTask(taskId, catId, event) {
+  event.stopPropagation();
+  const custom = isCustomTask(taskId);
+  let task;
+  if (custom) {
+    for (const pk of Object.keys(state.customTasks)) {
+      for (const cid of Object.keys(state.customTasks[pk])) {
+        const found = state.customTasks[pk][cid].find(t => t.id === taskId);
+        if (found) { task = found; break; }
+      }
+      if (task) break;
+    }
+  } else {
+    for (const pk of Object.keys(PHASES)) {
+      for (const cat of PHASES[pk].categories) {
+        const found = cat.tasks.find(t => t.id === taskId);
+        if (found) { task = applyOverride(found); break; }
+      }
+      if (task) break;
+    }
+  }
+  if (!task) return;
+
+  const el = document.getElementById('task_' + taskId);
+  if (!el) return;
+  el.className = 'task-item editing';
+  el.onclick = null;
+
+  const safeText = task.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const safeDesc = task.desc.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  el.innerHTML = `
+    <div class="task-edit-form">
+      <input type="text" id="editText_${taskId}" value="${safeText}" placeholder="Aufgabenname...">
+      <textarea id="editDesc_${taskId}" placeholder="Beschreibung...">${safeDesc}</textarea>
+      <div class="edit-row">
+        <select id="editPrio_${taskId}">
+          <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Normal</option>
+          <option value="high" ${task.priority === 'high' ? 'selected' : ''}>Wichtig</option>
+        </select>
+        <select id="editXP_${taskId}">
+          <option value="5" ${task.xp === 5 ? 'selected' : ''}>+5 XP</option>
+          <option value="10" ${task.xp === 10 ? 'selected' : ''}>+10 XP</option>
+          <option value="15" ${task.xp === 15 ? 'selected' : ''}>+15 XP</option>
+          <option value="20" ${task.xp === 20 ? 'selected' : ''}>+20 XP</option>
+          <option value="25" ${task.xp === 25 ? 'selected' : ''}>+25 XP</option>
+          <option value="30" ${task.xp === 30 ? 'selected' : ''}>+30 XP</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveEditTask('${taskId}', '${catId}')">Speichern</button>
+        <button class="btn btn-ghost" onclick="renderPhase()">Abbrechen</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('editText_' + taskId).focus();
+}
+
+function saveEditTask(taskId, catId) {
+  const text = document.getElementById('editText_' + taskId).value.trim();
+  if (!text) return;
+  const desc = document.getElementById('editDesc_' + taskId).value.trim();
+  const priority = document.getElementById('editPrio_' + taskId).value;
+  const xp = parseInt(document.getElementById('editXP_' + taskId).value);
+
+  if (isCustomTask(taskId)) {
+    for (const pk of Object.keys(state.customTasks)) {
+      for (const cid of Object.keys(state.customTasks[pk])) {
+        const idx = state.customTasks[pk][cid].findIndex(t => t.id === taskId);
+        if (idx !== -1) {
+          state.customTasks[pk][cid][idx] = { ...state.customTasks[pk][cid][idx], text, desc, priority, xp };
+          break;
+        }
+      }
+    }
+  } else {
+    state.taskOverrides[taskId] = { text, desc, priority, xp };
+  }
+
+  saveState();
+  renderPhase();
+}
+
+function deleteTask(taskId, catId, event) {
+  event.stopPropagation();
+  if (!isCustomTask(taskId)) return;
+  if (!confirm('Aufgabe wirklich löschen?')) return;
+
+  for (const pk of Object.keys(state.customTasks)) {
+    for (const cid of Object.keys(state.customTasks[pk])) {
+      const idx = state.customTasks[pk][cid].findIndex(t => t.id === taskId);
+      if (idx !== -1) {
+        state.customTasks[pk][cid].splice(idx, 1);
+        break;
+      }
+    }
+  }
+  delete state.completedTasks[taskId];
+  saveState();
+  renderPhase();
+  checkAchievements();
 }
 
 // ============================================================
